@@ -15,7 +15,7 @@ export const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379"
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT || 10000;
 
   // Initialize Background Workers
   initWorkers();
