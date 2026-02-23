@@ -16,6 +16,7 @@ export const redis = new Redis(
   {
     maxRetriesPerRequest: null,
   }
+  tls: {},
 );
 
 async function startServer() {
