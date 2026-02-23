@@ -27,6 +27,7 @@ export const requestOtp = async (req: Request, res: Response) => {
     
     return res.json({ message: 'OTP sent successfully' });
   } catch (error) {
+    console.error("Request OTP Error:", error);
     return res.status(400).json({ error: 'Invalid request' });
   }
 };
@@ -78,6 +79,9 @@ export const verifyOtp = async (req: Request, res: Response) => {
       refreshToken,
     });
   } catch (error) {
+    // Yahan aayega aapka asli error Render ke logs mein!
+    console.error("MERA ASLI ERROR YE HAI:", error); 
+    
     return res.status(400).json({ error: 'Invalid request' });
   }
 };
