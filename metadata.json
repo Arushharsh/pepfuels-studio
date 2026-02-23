@@ -1,0 +1,7 @@
+{
+  "name": "Pepfuels - Enterprise Fuel Delivery Platform",
+  "description": "A comprehensive B2B & B2C fuel delivery management system featuring real-time tracking, inventory management, and role-based access control.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
