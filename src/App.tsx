@@ -189,8 +189,11 @@ export default function App() {
                 <input 
                   type="tel" 
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
+                  onChange={(e) => {
+                    const onlyNumbers = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setPhone(onlyNumbers);
+                  }}
+                  placeholder="9876543210"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                   required
                 />
@@ -210,7 +213,10 @@ export default function App() {
                 <input 
                   type="text" 
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
+                  onChange={(e) => {
+                    const onlyNumbers = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setOtp(onlyNumbers);
+                  }}
                   placeholder="000000"
                   maxLength={6}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-center tracking-[1em] font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
