@@ -39,25 +39,25 @@ enum AssetType {
 }
 
 model User {
-  id                String         @id @default(uuid())
-  phone             String         @unique
-  email             String?        @unique
-  name              String
-  role              Role           @default(MAIN_USER)
-  isActive          Boolean        @default(true)
-  isKycVerified     Boolean        @default(false)
-  parentId          String?        // For SUB_USER mapping to MAIN_USER
-  parent            User?          @relation("UserHierarchy", fields: [parentId], references: [id])
-  subUsers          User[]         @relation("UserHierarchy")
+  id              String         @id @default(uuid())
+  phone           String         @unique
+  email           String?        @unique
+  name            String?        // <-- YAHAN CHANGE KIYA HAI (String? bana diya)
+  role            Role           @default(MAIN_USER)
+  isActive        Boolean        @default(true)
+  isKycVerified   Boolean        @default(false)
+  parentId        String?        // For SUB_USER mapping to MAIN_USER
+  parent          User?          @relation("UserHierarchy", fields: [parentId], references: [id])
+  subUsers        User[]         @relation("UserHierarchy")
   
-  driver            Driver?
-  assets            Asset[]
-  orders            Order[]        @relation("CustomerOrders")
-  auditLogs         AuditLog[]
-  refreshTokens     RefreshToken[]
+  driver          Driver?
+  assets          Asset[]
+  orders          Order[]        @relation("CustomerOrders")
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
   
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@index([phone])
   @@index([role])
@@ -81,19 +81,19 @@ model Driver {
 }
 
 model Asset {
-  id                String         @id @default(uuid())
-  name              String
-  type              AssetType
-  capacity          Float
-  rcNumber          String?        @unique
-  ownerId           String
-  owner             User           @relation(fields: [ownerId], references: [id])
+  id              String         @id @default(uuid())
+  name            String
+  type            AssetType
+  capacity        Float
+  rcNumber        String?        @unique
+  ownerId         String
+  owner           User           @relation(fields: [ownerId], references: [id])
   
-  orders            Order[]
-  tankReadings      TankReading[]
+  orders          Order[]
+  tankReadings    TankReading[]
   
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model Vehicle {
@@ -110,17 +110,17 @@ model Vehicle {
 }
 
 model Pump {
-  id                String         @id @default(uuid())
-  name              String
-  location          String
-  lat               Float
-  lng               Float
+  id              String         @id @default(uuid())
+  name            String
+  location        String
+  lat             Float
+  lng             Float
   
-  inventoryLogs     InventoryLog[]
-  orders            Order[]
+  inventoryLogs   InventoryLog[]
+  orders          Order[]
   
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model Order {
@@ -167,54 +167,54 @@ model Order {
 }
 
 model OrderStatusHistory {
-  id                String         @id @default(uuid())
-  orderId           String
-  order             Order          @relation(fields: [orderId], references: [id])
-  status            OrderStatus
-  remarks           String?
-  updatedById       String
+  id              String         @id @default(uuid())
+  orderId         String
+  order           Order          @relation(fields: [orderId], references: [id])
+  status          OrderStatus
+  remarks         String?
+  updatedById     String
   
-  createdAt         DateTime       @default(now())
+  createdAt       DateTime       @default(now())
 }
 
 model TankReading {
-  id                String         @id @default(uuid())
-  assetId           String
-  asset             Asset          @relation(fields: [assetId], references: [id])
-  fuelLevel         Float
-  readingTime       DateTime       @default(now())
+  id              String         @id @default(uuid())
+  assetId         String
+  asset           Asset          @relation(fields: [assetId], references: [id])
+  fuelLevel       Float
+  readingTime     DateTime       @default(now())
 }
 
 model InventoryLog {
-  id                String         @id @default(uuid())
-  vehicleId         String?
-  vehicle           Vehicle?       @relation(fields: [vehicleId], references: [id])
-  pumpId            String?
-  pump              Pump?          @relation(fields: [pumpId], references: [id])
-  change            Float
-  reason            String
+  id              String         @id @default(uuid())
+  vehicleId       String?
+  vehicle         Vehicle?       @relation(fields: [vehicleId], references: [id])
+  pumpId          String?
+  pump            Pump?          @relation(fields: [pumpId], references: [id])
+  change          Float
+  reason          String
   
-  createdAt         DateTime       @default(now())
+  createdAt       DateTime       @default(now())
 }
 
 model AuditLog {
-  id                String         @id @default(uuid())
-  userId            String?
-  user              User?          @relation(fields: [userId], references: [id])
-  action            String
-  entity            String
-  entityId          String?
-  payload           Json?
+  id              String         @id @default(uuid())
+  userId          String?
+  user            User?          @relation(fields: [userId], references: [id])
+  action          String
+  entity          String
+  entityId        String?
+  payload         Json?
   
-  createdAt         DateTime       @default(now())
+  createdAt       DateTime       @default(now())
 }
 
 model RefreshToken {
-  id                String         @id @default(uuid())
-  token             String         @unique
-  userId            String
-  user              User           @relation(fields: [userId], references: [id])
-  expiresAt         DateTime
+  id              String         @id @default(uuid())
+  token           String         @unique
+  userId          String
+  user            User           @relation(fields: [userId], references: [id])
+  expiresAt       DateTime
   
-  createdAt         DateTime       @default(now())
+  createdAt       DateTime       @default(now())
 }
