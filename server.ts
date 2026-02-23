@@ -6,8 +6,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { PrismaClient } from "@prisma/client";
 import Redis from "ioredis";
-import routes from "./backend/routes.js";
-import { initWorkers } from "./backend/services/queueService.js";
+import routes from "./src/backend/routes.js";
+import { initWorkers } from "./src/backend/services/queueService.js";
 
 // Initialize core services
 export const prisma = new PrismaClient();
