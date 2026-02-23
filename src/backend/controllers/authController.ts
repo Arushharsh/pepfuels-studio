@@ -41,6 +41,15 @@ export const verifyOtp = async (req: Request, res: Response) => {
     const storedOtp = await redis.get(`otp:${phone}`);
     if (!storedOtp || storedOtp !== otp) {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
+      // ... aapke verifyOtp function ka upar wala code ...
+      } catch (error: any) {
+        // Ye line asli backend error ko nikalegi
+        const errorMessage = error.message || JSON.stringify(error);
+        
+        // Ab user ki screen par "Invalid request" ki jagah asli problem likhi aayegi
+        return res.status(400).json({ error: `Backend Error: ${errorMessage}` });
+      }
+    };
     }
     
     // Clear OTP
