@@ -50,7 +50,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Pepfuels Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Pepfuels Server running on port ${PORT}`);
   });
 }
 
