@@ -12,7 +12,7 @@ import { initWorkers } from "./src/backend/services/queueService";
 // Initialize core services
 export const prisma = new PrismaClient();
 export const redis = new Redis(
-  process.env.REDIS_URL || "redis://localhost:6379"
+  process.env.REDIS_URL || "redis://localhost:6379",
   {
     maxRetriesPerRequest: null,
   }
