@@ -7,7 +7,7 @@ import morgan from "morgan";
 import { PrismaClient } from "@prisma/client";
 import Redis from "ioredis";
 import routes from "./backend/routes";
-import { initWorkers } from "./src/backend/services/queueService";
+import { initWorkers } from "./backend/services/queueService";
 
 // Initialize core services
 export const prisma = new PrismaClient();
