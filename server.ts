@@ -57,20 +57,18 @@ async function startServer() {
   });
 
   // --- VITE / STATIC HANDLING ---
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.resolve(__dirname, "dist");
-    app.use(express.static(distPath));
+// --- STATIC SERVE FOR PRODUCTION ---
+if (process.env.NODE_ENV === "production") {
+  const distPath = path.join(process.cwd(), "dist");
 
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
+  console.log("Serving static from:", distPath);
+
+  app.use(express.static(distPath));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(distPath, "index.html"));
+  });
+}
 
   app.listen(Number(PORT), "0.0.0.0", () => {
     console.log(`🚀 Pepfuels running on port ${PORT}`);
