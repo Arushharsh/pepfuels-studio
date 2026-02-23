@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  CRM_ADMIN
+  MAIN_USER
+  SUB_USER
+  DRIVER
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  ASSIGNED
+  IN_TRANSIT
+  ARRIVED
+  REFUELLING
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum OrderType {
+  DOORSTEP
+  AT_PUMP
+}
+
+enum AssetType {
+  VEHICLE
+  MACHINE
+  GENERATOR
+}
+
+model User {
+  id                String         @id @default(uuid())
+  phone             String         @unique
+  email             String?        @unique
+  name              String
+  role              Role           @default(MAIN_USER)
+  isActive          Boolean        @default(true)
+  isKycVerified     Boolean        @default(false)
+  parentId          String?        // For SUB_USER mapping to MAIN_USER
+  parent            User?          @relation("UserHierarchy", fields: [parentId], references: [id])
+  subUsers          User[]         @relation("UserHierarchy")
+  
+  driver            Driver?
+  assets            Asset[]
+  orders            Order[]        @relation("CustomerOrders")
+  auditLogs         AuditLog[]
+  refreshTokens     RefreshToken[]
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([phone])
+  @@index([role])
+}
+
+model Driver {
+  id                String         @id @default(uuid())
+  userId            String         @unique
+  user              User           @relation(fields: [userId], references: [id])
+  licenseNumber     String         @unique
+  currentVehicleId  String?
+  vehicle           Vehicle?       @relation(fields: [currentVehicleId], references: [id])
+  isOnline          Boolean        @default(false)
+  lastLat           Float?
+  lastLng           Float?
+  
+  orders            Order[]        @relation("DriverOrders")
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Asset {
+  id                String         @id @default(uuid())
+  name              String
+  type              AssetType
+  capacity          Float
+  rcNumber          String?        @unique
+  ownerId           String
+  owner             User           @relation(fields: [ownerId], references: [id])
+  
+  orders            Order[]
+  tankReadings      TankReading[]
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Vehicle {
+  id                String         @id @default(uuid())
+  registrationNo    String         @unique
+  capacity          Float
+  currentInventory  Float          @default(0)
+  
+  drivers           Driver[]
+  inventoryLogs     InventoryLog[]
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Pump {
+  id                String         @id @default(uuid())
+  name              String
+  location          String
+  lat               Float
+  lng               Float
+  
+  inventoryLogs     InventoryLog[]
+  orders            Order[]
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Order {
+  id                String         @id @default(uuid())
+  orderNo           String         @unique
+  type              OrderType
+  status            OrderStatus    @default(PENDING)
+  quantity          Float
+  pricePerLitre     Float
+  totalAmount       Float
+  
+  customerId        String
+  customer          User           @relation("CustomerOrders", fields: [customerId], references: [id])
+  
+  assetId           String?
+  asset             Asset?         @relation(fields: [assetId], references: [id])
+  
+  driverId          String?
+  driver            Driver?        @relation("DriverOrders", fields: [driverId], references: [id])
+  
+  pumpId            String?
+  pump              Pump?          @relation(fields: [pumpId], references: [id])
+  
+  otp               String?        // Delivery OTP
+  
+  // Delivery Details
+  startKm           Float?
+  endKm             Float?
+  startTime         DateTime?
+  endTime           DateTime?
+  density           Float?
+  jarTestResult     Float?
+  meterReadingStart Float?
+  meterReadingEnd   Float?
+  signedChallanUrl  String?
+  
+  history           OrderStatusHistory[]
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+}
+
+model OrderStatusHistory {
+  id                String         @id @default(uuid())
+  orderId           String
+  order             Order          @relation(fields: [orderId], references: [id])
+  status            OrderStatus
+  remarks           String?
+  updatedById       String
+  
+  createdAt         DateTime       @default(now())
+}
+
+model TankReading {
+  id                String         @id @default(uuid())
+  assetId           String
+  asset             Asset          @relation(fields: [assetId], references: [id])
+  fuelLevel         Float
+  readingTime       DateTime       @default(now())
+}
+
+model InventoryLog {
+  id                String         @id @default(uuid())
+  vehicleId         String?
+  vehicle           Vehicle?       @relation(fields: [vehicleId], references: [id])
+  pumpId            String?
+  pump              Pump?          @relation(fields: [pumpId], references: [id])
+  change            Float
+  reason            String
+  
+  createdAt         DateTime       @default(now())
+}
+
+model AuditLog {
+  id                String         @id @default(uuid())
+  userId            String?
+  user              User?          @relation(fields: [userId], references: [id])
+  action            String
+  entity            String
+  entityId          String?
+  payload           Json?
+  
+  createdAt         DateTime       @default(now())
+}
+
+model RefreshToken {
+  id                String         @id @default(uuid())
+  token             String         @unique
+  userId            String
+  user              User           @relation(fields: [userId], references: [id])
+  expiresAt         DateTime
+  
+  createdAt         DateTime       @default(now())
+}
