@@ -4,12 +4,14 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 
 const loginSchema = z.object({
-  phone: z.string().min(10).max(15),
+  // z.coerce.string() number ko automatic string bana dega
+  // regex ensures ki exactly 10 digits hi hone chahiye, na kam na zyada
+  phone: z.coerce.string().regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
 });
 
 const verifyOtpSchema = z.object({
-  phone: z.string().min(10).max(15),
-  otp: z.string().length(6),
+  phone: z.coerce.string().regex(/^\d{10}$/, "Phone number must be exactly 10 digits"),
+  otp: z.coerce.string().length(6, "OTP must be exactly 6 digits"),
 });
 
 export const requestOtp = async (req: Request, res: Response) => {
