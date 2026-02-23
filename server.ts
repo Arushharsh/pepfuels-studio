@@ -1,7 +1,6 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
+import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -10,38 +9,40 @@ import Redis from "ioredis";
 import routes from "./src/backend/routes";
 import { initWorkers } from "./src/backend/services/queueService";
 
-// ✅ Fix for __dirname in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 // Initialize core services
 export const prisma = new PrismaClient();
 
-export const redis = new Redis(process.env.REDIS_URL!, {
+const sanitizeRedisUrl = (url: string) => {
+  if (!url) return "redis://localhost:6379";
+  return url.replace(/.*(rediss?:\/\/)/, '$1').trim();
+};
+
+export const redis = new Redis(sanitizeRedisUrl(process.env.REDIS_URL!), {
   maxRetriesPerRequest: null,
-  tls: {}, // Required for Upstash (rediss://)
+  tls: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+  retryStrategy(times) {
+    return Math.min(times * 50, 2000);
+  },
+  reconnectOnError(err) {
+    const targetError = "READONLY";
+    if (err.message.includes(targetError)) {
+      return true;
+    }
+    return false;
+  },
 });
 
 async function startServer() {
   const app = express();
-
-  // ✅ Dynamic port for Render
-  const PORT = process.env.PORT || 10000;
+  const PORT = 3000;
 
   // Initialize Background Workers
-  try {
-    initWorkers();
-  } catch (err) {
-    console.log("Workers disabled:", err);
-  }
+  initWorkers();
 
   // Security & Logging Middleware
-  app.use(
-    helmet({
-      contentSecurityPolicy: false,
-    })
-  );
-
+  app.use(helmet({
+    contentSecurityPolicy: false,
+  }));
   app.use(cors());
   app.use(morgan("dev"));
   app.use(express.json());
@@ -50,32 +51,30 @@ async function startServer() {
   app.use("/api", routes);
 
   app.get("/api/health", (req, res) => {
-    res.json({
-      status: "ok",
-      timestamp: new Date().toISOString(),
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // --- VITE MIDDLEWARE ---
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
     });
-  });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
+  }
 
-  // --- VITE / STATIC HANDLING ---
-// --- STATIC SERVE FOR PRODUCTION ---
-if (process.env.NODE_ENV === "production") {
-  const distPath = path.join(process.cwd(), "dist");
-
-  console.log("Serving static from:", distPath);
-
-  app.use(express.static(distPath));
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
-  });
-}
-
-  app.listen(Number(PORT), "0.0.0.0", () => {
-    console.log(`🚀 Pepfuels running on port ${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Pepfuels Server running on http://localhost:${PORT}`);
   });
 }
 
 startServer().catch((err) => {
-  console.error("❌ Failed to start server:", err);
+  console.error("Failed to start server:", err);
   process.exit(1);
 });
